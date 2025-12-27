@@ -5,14 +5,16 @@ Backend server cho hệ thống E-commerce PhoneCom sử dụng PostgreSQL, Pris
 ## Cấu trúc Database
 
 1. **users** - Thông tin người dùng với vai trò (GUEST, CUSTOMER, STAFF, ADMIN)
-2. **addresses** - Địa chỉ giao hàng của người dùng
-3. **products** - Thông tin sản phẩm (tên, thương hiệu, mô tả)
-4. **variants** - Biến thể sản phẩm (màu sắc, dung lượng, giá, tồn kho)
-5. **cart_items** - Giỏ hàng của người dùng
-6. **orders** - Đơn hàng với trạng thái (PENDING, CONFIRMED, COMPLETED, CANCELLED)
-7. **order_items** - Chi tiết sản phẩm trong đơn hàng
-8. **staff_notes** - Ghi chú nội bộ của nhân viên về đơn hàng
-9. **inventory_transactions** - Lịch sử giao dịch kho hàng
+2. **roles** - Thông tin các vai trò
+3. **addresses** - Địa chỉ giao hàng của người dùng
+4. **products** - Thông tin sản phẩm (tên, thương hiệu, mô tả)
+5. **variants** - Biến thể sản phẩm (màu sắc, dung lượng, giá, tồn kho)
+6. **carts** - Thông tin giỏ hàng
+7. **cart_items** - chi tiết sản phản trong giỏ hàng của người dùng
+8. **orders** - Đơn hàng với trạng thái (PENDING, CONFIRMED, COMPLETED, CANCELLED)
+9. **order_items** - Chi tiết sản phẩm trong đơn hàng
+10. **staff_notes** - Ghi chú nội bộ của nhân viên về đơn hàng
+11. **inventory_transactions** - Lịch sử giao dịch kho hàng
 
 ## Cài đặt
 
