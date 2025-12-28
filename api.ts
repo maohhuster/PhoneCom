@@ -68,6 +68,11 @@ export const api = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             }).then(res => handleResponse<Product>(res)),
+
+        delete: (id: string) =>
+            fetch(`${API_URL}/products/${id}`, {
+                method: 'DELETE',
+            }).then(res => handleResponse<void>(res)),
     },
 
     variants: {

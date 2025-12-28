@@ -91,11 +91,11 @@ async function main() {
             brand: 'Apple',
             description: 'The ultimate iPhone. Titanium design. A17 Pro chip.',
             status: 'ACTIVE',
-            imageUrl: 'https://tse1.explicit.bing.net/th/id/OIP.c-v5bJuEnmpdHFvJScQRjQHaJH?w=2162&h=2660&rs=1&pid=ImgDetMain&o=7&rm=3',
+            imageUrl: 'https://images.macrumors.com/article-new/2023/09/iphone-15-pro-gray.jpg',
             variants: [
-                { name: '128GB - Natural Titanium', color: 'Natural Titanium', capacity: '128GB', price: 999, stockQuantity: 25, imageUrl: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?auto=format&fit=crop&q=80&w=800' },
-                { name: '256GB - Blue Titanium', color: 'Blue Titanium', capacity: '256GB', price: 1099, stockQuantity: 15, imageUrl: 'https://images.unsplash.com/photo-1696448377225-b6ffaf3194a2?auto=format&fit=crop&q=80&w=800' },
-                { name: '512GB - Black Titanium', color: 'Black Titanium', capacity: '512GB', price: 1299, stockQuantity: 10, imageUrl: 'https://images.unsplash.com/photo-1696446702183-cbd13d78e1e7?auto=format&fit=crop&q=80&w=800' }
+                { name: '128GB - Natural Titanium', color: 'Natural Titanium', capacity: '128GB', price: 999, stockQuantity: 25, imageUrl: 'https://tse2.mm.bing.net/th/id/OIP.8a8W7WyIsrr1i37DLR9uwAHaL5?rs=1&pid=ImgDetMain&o=7&rm=3' },
+                { name: '256GB - Blue Titanium', color: 'Blue Titanium', capacity: '256GB', price: 1099, stockQuantity: 15, imageUrl: 'https://tse2.mm.bing.net/th/id/OIP.8a8W7WyIsrr1i37DLR9uwAHaL5?rs=1&pid=ImgDetMain&o=7&rm=3' },
+                { name: '512GB - Black Titanium', color: 'Black Titanium', capacity: '512GB', price: 1299, stockQuantity: 10, imageUrl: 'https://tse2.mm.bing.net/th/id/OIP.8a8W7WyIsrr1i37DLR9uwAHaL5?rs=1&pid=ImgDetMain&o=7&rm=3' }
             ]
         },
         {
@@ -105,9 +105,9 @@ async function main() {
             status: 'ACTIVE',
             imageUrl: 'https://tse4.mm.bing.net/th/id/OIP.hQVUtnziJeAuUtTx-BKDHQHaFj?rs=1&pid=ImgDetMain&o=7&rm=3',
             variants: [
-                { name: '256GB - Titanium Black', color: 'Titanium Black', capacity: '256GB', price: 1299, stockQuantity: 30, imageUrl: 'https://images.unsplash.com/photo-1707133935823-380d603a1197?auto=format&fit=crop&q=80&w=800' },
-                { name: '512GB - Titanium Violet', color: 'Titanium Violet', capacity: '512GB', price: 1419, stockQuantity: 12, imageUrl: 'https://images.unsplash.com/photo-1707133935397-26f56e6d16ff?auto=format&fit=crop&q=80&w=800' },
-                { name: '1TB - Titanium Gray', color: 'Titanium Gray', capacity: '1TB', price: 1599, stockQuantity: 5, imageUrl: 'https://images.unsplash.com/photo-1707133936665-680786576628?auto=format&fit=crop&q=80&w=800' }
+                { name: '256GB - Titanium Black', color: 'Titanium Black', capacity: '256GB', price: 1299, stockQuantity: 30, imageUrl: 'https://tse4.mm.bing.net/th/id/OIP.hQVUtnziJeAuUtTx-BKDHQHaFj?rs=1&pid=ImgDetMain&o=7&rm=3' },
+                { name: '512GB - Titanium Violet', color: 'Titanium Violet', capacity: '512GB', price: 1419, stockQuantity: 12, imageUrl: 'https://tse4.mm.bing.net/th/id/OIP.hQVUtnziJeAuUtTx-BKDHQHaFj?rs=1&pid=ImgDetMain&o=7&rm=3' },
+                { name: '1TB - Titanium Gray', color: 'Titanium Gray', capacity: '1TB', price: 1599, stockQuantity: 5, imageUrl: 'https://tse4.mm.bing.net/th/id/OIP.hQVUtnziJeAuUtTx-BKDHQHaFj?rs=1&pid=ImgDetMain&o=7&rm=3' }
             ]
         },
         {
@@ -117,8 +117,8 @@ async function main() {
             status: 'ACTIVE',
             imageUrl: 'https://i02.appmifile.com/334_operator_sg/22/02/2024/d36105f6de5a716a1c0737352c2827be.png',
             variants: [
-                { name: '512GB - Black', color: 'Black', capacity: '512GB', price: 1199, stockQuantity: 20, imageUrl: 'https://images.unsplash.com/photo-1712495636007-4e6628670783?auto=format&fit=crop&q=80&w=800' },
-                { name: '512GB - White', color: 'White', capacity: '512GB', price: 1199, stockQuantity: 15, imageUrl: 'https://images.unsplash.com/photo-1712499694503-6a56e6d16ff1?auto=format&fit=crop&q=80&w=800' }
+                { name: '512GB - Black', color: 'Black', capacity: '512GB', price: 1199, stockQuantity: 20, imageUrl: 'https://i02.appmifile.com/334_operator_sg/22/02/2024/d36105f6de5a716a1c0737352c2827be.png' },
+                { name: '512GB - White', color: 'White', capacity: '512GB', price: 1199, stockQuantity: 15, imageUrl: 'https://i02.appmifile.com/334_operator_sg/22/02/2024/d36105f6de5a716a1c0737352c2827be.png' }
             ]
         },
         {
@@ -128,8 +128,8 @@ async function main() {
             status: 'ACTIVE',
             imageUrl: 'https://cdn.mos.cms.futurecdn.net/cWG2kiVg3uSeHQKzHuY8wK.jpg',
             variants: [
-                { name: '256GB - Platinum Silver', color: 'Platinum Silver', capacity: '256GB', price: 1399, stockQuantity: 8, imageUrl: 'https://images.unsplash.com/photo-1610433562743-3467f6314c46?auto=format&fit=crop&q=80&w=800' },
-                { name: '512GB - Khaki Green', color: 'Khaki Green', capacity: '512GB', price: 1499, stockQuantity: 4, imageUrl: 'https://images.unsplash.com/photo-1544244015-0cd4b3ffc6b0?auto=format&fit=crop&q=80&w=800' }
+                { name: '256GB - Platinum Silver', color: 'Platinum Silver', capacity: '256GB', price: 1399, stockQuantity: 8, imageUrl: 'https://cdn.mos.cms.futurecdn.net/cWG2kiVg3uSeHQKzHuY8wK.jpg' },
+                { name: '512GB - Khaki Green', color: 'Khaki Green', capacity: '512GB', price: 1499, stockQuantity: 4, imageUrl: 'https://cdn.mos.cms.futurecdn.net/cWG2kiVg3uSeHQKzHuY8wK.jpg' }
             ]
         },
         {
@@ -137,10 +137,10 @@ async function main() {
             brand: 'Oppo',
             description: 'The first quad-camera system with dual periscope lenses.',
             status: 'ACTIVE',
-            imageUrl: 'https://tse1.mm.bing.net/th/id/OIP.yNKzB4x0hpn16LV9UhjPfAHaGl?rs=1&pid=ImgDetMain&o=7&rm=3',
+            imageUrl: 'https://www.vopmart.com/media/wysiwyg/OPPO/oppo-find-x7-ultra-02.jpg',
             variants: [
-                { name: '256GB - Ocean Blue', color: 'Ocean Blue', capacity: '256GB', price: 999, stockQuantity: 15, imageUrl: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&q=80&w=800' },
-                { name: '512GB - Sepia Brown', color: 'Sepia Brown', capacity: '512GB', price: 1099, stockQuantity: 8, imageUrl: 'https://images.unsplash.com/photo-1574852859542-1b41217a7805?auto=format&fit=crop&q=80&w=800' }
+                { name: '256GB - Ocean Blue', color: 'Ocean Blue', capacity: '256GB', price: 999, stockQuantity: 15, imageUrl: 'https://www.oppo.com/content/dam/oppo/common/mkt/v2-2/find-x7-series-cn/listpage/find-x7-ultra-427_600-blue.png' },
+                { name: '512GB - Sepia Brown', color: 'Sepia Brown', capacity: '512GB', price: 1099, stockQuantity: 8, imageUrl: 'https://www.oppo.com/content/dam/oppo/common/mkt/v2-2/find-x7-series-cn/listpage/find-x7-ultra-427_600-blue.png' }
             ]
         }
     ];

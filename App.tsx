@@ -55,6 +55,8 @@ interface AppContextType extends AppState {
   updateUserRole: (userId: string, newRole: Role) => Promise<void>;
   updateProduct: (productId: string, data: any) => Promise<void>;
   updateVariant: (variantId: string, data: any) => Promise<void>;
+  addProduct: (productData: any) => Promise<void>;
+  deleteProduct: (productId: string) => Promise<void>;
   showNotification: (message: string, type?: 'success' | 'error') => void;
 }
 
@@ -331,6 +333,26 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   };
 
+  const addProduct = async (productData: any) => {
+    try {
+      const newProduct = await api.products.create(productData);
+      setProducts(prev => [newProduct, ...prev]);
+      showNotification('Product added successfully', 'success');
+    } catch (error: any) {
+      showNotification(error.message || "Failed to add product", "error");
+    }
+  };
+
+  const deleteProduct = async (productId: string) => {
+    try {
+      await api.products.delete(productId);
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      showNotification('Product deleted successfully', 'success');
+    } catch (error: any) {
+      showNotification(error.message || "Failed to delete product", "error");
+    }
+  };
+
   const addAddress = async (addressData: Omit<Address, 'id' | 'isDefault' | 'userId'>) => {
     if (!currentUser) return;
     try {
@@ -374,7 +396,7 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <AppContext.Provider value={{
       currentUser, allUsers, products, cart, orders, view, currentProduct, notifications,
       login, register, logout, addToCart, removeFromCart, updateCartQty, placeOrder,
-      updateOrderStatus, setView, setCurrentProduct, addStaffNote, editStaffNote, deleteStaffNote, updateInventory, showNotification, addAddress, updateUserRole, updateProduct, updateVariant
+      updateOrderStatus, setView, setCurrentProduct, addStaffNote, editStaffNote, deleteStaffNote, updateInventory, showNotification, addAddress, updateUserRole, updateProduct, updateVariant, addProduct, deleteProduct
     }}>
       {children}
     </AppContext.Provider>
@@ -1207,8 +1229,24 @@ const OrderHistory: React.FC = () => {
 };
 
 const StaffDashboard: React.FC = () => {
-  const { orders, products, currentUser, allUsers, updateOrderStatus, addStaffNote, editStaffNote, deleteStaffNote, updateInventory, updateUserRole, updateProduct, updateVariant } = useAppContext();
-  const [activeTab, setActiveTab] = useState<'orders' | 'inventory' | 'overview' | 'users'>('orders');
+  const { orders, products, currentUser, allUsers, updateOrderStatus, addStaffNote, editStaffNote, deleteStaffNote, updateInventory, updateUserRole, updateProduct, updateVariant, addProduct, deleteProduct } = useAppContext();
+  const [activeTab, setActiveTab] = useState<'orders' | 'inventory' | 'overview' | 'users' | 'stock'>('orders');
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const [newProductData, setNewProductData] = useState({
+    name: '',
+    brand: '',
+    description: '',
+    imageUrl: '',
+    variants: [{
+      name: '',
+      color: '',
+      capacity: '',
+      price: 0,
+      stockQuantity: 0,
+      imageUrl: '',
+      status: 'IN_STOCK'
+    }]
+  });
   const [noteInputs, setNoteInputs] = useState<Record<string, string>>({});
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editNoteContent, setEditNoteContent] = useState<string>('');
@@ -1290,6 +1328,65 @@ const StaffDashboard: React.FC = () => {
     }
   };
 
+  const handleAddVariantToForm = () => {
+    setNewProductData(prev => ({
+      ...prev,
+      variants: [...prev.variants, {
+        name: '',
+        color: '',
+        capacity: '',
+        price: 0,
+        stockQuantity: 0,
+        imageUrl: '',
+        status: 'IN_STOCK'
+      }]
+    }));
+  };
+
+  const handleRemoveVariantFromForm = (index: number) => {
+    setNewProductData(prev => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAddProductSubmit = async () => {
+    if (!newProductData.name || !newProductData.brand) {
+      alert("Name and Brand are required");
+      return;
+    }
+    await addProduct(newProductData);
+    setIsAddingProduct(false);
+    setNewProductData({
+      name: '',
+      brand: '',
+      description: '',
+      imageUrl: '',
+      variants: [{
+        name: '',
+        color: '',
+        capacity: '',
+        price: 0,
+        stockQuantity: 0,
+        imageUrl: '',
+        status: 'IN_STOCK'
+      }]
+    });
+  };
+
+  const handleDeleteProduct = async (productId: string) => {
+    if (window.confirm("Are you sure you want to delete this product and all its variants?")) {
+      await deleteProduct(productId);
+    }
+  };
+
+  const handleStockChange = async (variant: any, newStock: number) => {
+    const productName = variant.productName || products.find(p => p.id === variant.productId)?.name || 'Product';
+    if (window.confirm(`Confirm updating stock for "${productName} - ${variant.name}" from ${variant.stockQuantity} to ${newStock}?`)) {
+      await updateInventory(variant.id, newStock);
+    }
+  };
+
   // --- Dashboard Statistics Calculation ---
   const stats = useMemo(() => {
     const totalRevenue = orders
@@ -1337,9 +1434,19 @@ const StaffDashboard: React.FC = () => {
           {isAdmin && (
             <button
               onClick={() => setActiveTab('inventory')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'inventory' ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`flex items-center px-4 py-3 text-sm font-bold border-b-2 transition-all ${activeTab === 'inventory' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
             >
-              Inventory Management
+              <Package className="h-4 w-4 mr-2" />
+              Inventory
+            </button>
+          )}
+          {isAdmin && (
+            <button
+              onClick={() => setActiveTab('stock')}
+              className={`flex items-center px-4 py-3 text-sm font-bold border-b-2 transition-all ${activeTab === 'stock' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+            >
+              <Activity className="h-4 w-4 mr-2" />
+              Stock Management
             </button>
           )}
           {isAdmin && (
@@ -1475,7 +1582,7 @@ const StaffDashboard: React.FC = () => {
                       acc[productName] = (acc[productName] || 0) + (item.quantity || 1);
                       return acc;
                     }, {} as Record<string, number>))
-                      .map(([name, quantity]) => ({ name, quantity }))
+                      .map(([name, quantity]) => ({ name, quantity: quantity as number }))
                       .sort((a, b) => b.quantity - a.quantity)
                       .slice(0, 5)
                   } layout="vertical">
@@ -1486,7 +1593,7 @@ const StaffDashboard: React.FC = () => {
                     <Bar dataKey="quantity" fill="#818cf8" radius={[0, 4, 4, 0]} barSize={20} />
                   </ReBarChart>
                 </ResponsiveContainer>
-              </div>
+              </div>-
             </div>
           </div>
         </div>
@@ -1625,86 +1732,264 @@ const StaffDashboard: React.FC = () => {
       )}
 
       {activeTab === 'inventory' && isAdmin && (
-        <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-200 animate-slide-in-right">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Product</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Image</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Variant</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Stock Level</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {products.flatMap(p => p.variants.map(v => ({ ...v, productName: p.name }))).map((variant) => (
-                  <tr key={variant.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-sm font-medium text-gray-900">{variant.productName}</span>
-                        <button
-                          onClick={() => {
-                            const p = products.find(prod => prod.id === variant.productId);
-                            if (p) handleEditProduct(p);
-                          }}
-                          className="p-1 text-indigo-600 hover:bg-indigo-50 rounded"
-                          title="Edit Product Details"
-                        >
-                          <Edit2 className="h-3 w-3" />
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-10 w-10 rounded border border-gray-100 overflow-hidden bg-gray-50">
-                        <img
-                          src={variant.imageUrl || products.find(p => p.id === variant.productId)?.imageUrl}
-                          alt=""
-                          className="h-full w-full object-cover"
-                          onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/40?text=No+Img')}
-                        />
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex items-center space-x-1">
-                        <span className="truncate max-w-[150px]">{variant.name}</span>
-                        <button
-                          onClick={() => handleEditVariant(variant as any)}
-                          className="p-1 text-indigo-600 hover:bg-indigo-50 rounded"
-                          title="Edit Variant Details"
-                        >
-                          <Edit2 className="h-3 w-3" />
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${variant.stockQuantity < 5 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                        {variant.stockQuantity} Units
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center space-x-1 border rounded-lg bg-gray-50 p-1">
+        <div className="space-y-4 animate-slide-in-right">
+          <div className="flex justify-end">
+            <button
+              onClick={() => setIsAddingProduct(true)}
+              className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg text-sm font-bold transform hover:-translate-y-0.5"
+            >
+              <Plus className="h-4 w-4 mr-2" /> Add New Product
+            </button>
+          </div>
+          <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-200">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Product</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Image</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Variant</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Stock Level</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {products.flatMap(p => p.variants.map(v => ({ ...v, productName: p.name }))).map((variant) => (
+                    <tr key={variant.id} className="hover:bg-gray-50 transition-colors group">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-gray-900">{variant.productName}</span>
+                          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => {
+                                const p = products.find(prod => prod.id === variant.productId);
+                                if (p) handleEditProduct(p);
+                              }}
+                              className="p-1 text-indigo-600 hover:bg-indigo-50 rounded"
+                              title="Edit Product Details"
+                            >
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProduct(variant.productId)}
+                              className="p-1 text-red-500 hover:bg-red-50 rounded"
+                              title="Delete Entire Product"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="h-10 w-10 rounded border border-gray-100 overflow-hidden bg-gray-50">
+                          <img
+                            src={variant.imageUrl || products.find(p => p.id === variant.productId)?.imageUrl}
+                            alt=""
+                            className="h-full w-full object-cover"
+                            onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/40?text=No+Img')}
+                          />
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <span className="truncate max-w-[150px]">{variant.name}</span>
                           <button
-                            onClick={() => updateInventory(variant.id, Math.max(0, variant.stockQuantity - 1))}
-                            className="p-1 rounded hover:bg-white hover:shadow-sm text-gray-600 transition-all"
+                            onClick={() => handleEditVariant(variant as any)}
+                            className="p-1 text-indigo-600 hover:bg-indigo-50 rounded"
+                            title="Edit Variant Details"
                           >
-                            <Minus className="h-3 w-3" />
-                          </button>
-                          <span className="px-2 text-xs font-bold text-gray-700 min-w-[20px] text-center">{variant.stockQuantity}</span>
-                          <button
-                            onClick={() => updateInventory(variant.id, variant.stockQuantity + 5)}
-                            className="p-1 rounded hover:bg-white hover:shadow-sm text-indigo-600 transition-all"
-                          >
-                            <Plus className="h-3 w-3" />
+                            <Edit2 className="h-3 w-3" />
                           </button>
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${variant.stockQuantity < 5 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                          {variant.stockQuantity} Units
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Product Modal */}
+      {isAddingProduct && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-modal-pop">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
+              <h3 className="text-xl font-bold text-gray-900">Add New Product</h3>
+              <button onClick={() => setIsAddingProduct(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Product Name</label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                    value={newProductData.name}
+                    onChange={e => setNewProductData({ ...newProductData, name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Brand</label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                    value={newProductData.brand}
+                    onChange={e => setNewProductData({ ...newProductData, brand: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Description</label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none h-24 transition-all"
+                  value={newProductData.description}
+                  onChange={e => setNewProductData({ ...newProductData, description: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Product Image URL</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  value={newProductData.imageUrl}
+                  onChange={e => setNewProductData({ ...newProductData, imageUrl: e.target.value })}
+                />
+              </div>
+
+              <div className="pt-6 border-t border-gray-100">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="font-bold text-gray-900 text-lg">Product Variants</h4>
+                  <button
+                    onClick={handleAddVariantToForm}
+                    className="text-indigo-600 hover:text-indigo-800 text-sm font-bold flex items-center bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Add Variant
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {newProductData.variants.map((variant, index) => (
+                    <div key={index} className="bg-gray-50 p-6 rounded-2xl border border-gray-200 relative group">
+                      {newProductData.variants.length > 1 && (
+                        <button
+                          onClick={() => handleRemoveVariantFromForm(index)}
+                          className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      )}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Variant Name</label>
+                          <input
+                            type="text"
+                            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            placeholder="e.g. iPhone 15 Pro Max"
+                            value={variant.name}
+                            onChange={e => {
+                              const v = [...newProductData.variants];
+                              v[index].name = e.target.value;
+                              setNewProductData({ ...newProductData, variants: v });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Color</label>
+                          <input
+                            type="text"
+                            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            value={variant.color}
+                            onChange={e => {
+                              const v = [...newProductData.variants];
+                              v[index].color = e.target.value;
+                              setNewProductData({ ...newProductData, variants: v });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Capacity</label>
+                          <input
+                            type="text"
+                            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            value={variant.capacity}
+                            onChange={e => {
+                              const v = [...newProductData.variants];
+                              v[index].capacity = e.target.value;
+                              setNewProductData({ ...newProductData, variants: v });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Price</label>
+                          <input
+                            type="number"
+                            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            value={variant.price}
+                            onChange={e => {
+                              const v = [...newProductData.variants];
+                              v[index].price = Number(e.target.value);
+                              setNewProductData({ ...newProductData, variants: v });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Stock Quantity</label>
+                          <input
+                            type="number"
+                            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            value={variant.stockQuantity}
+                            onChange={e => {
+                              const v = [...newProductData.variants];
+                              v[index].stockQuantity = Number(e.target.value);
+                              setNewProductData({ ...newProductData, variants: v });
+                            }}
+                          />
+                        </div>
+                        <div className="sm:col-span-2 lg:col-span-1">
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Variant Image URL</label>
+                          <input
+                            type="text"
+                            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            value={variant.imageUrl}
+                            onChange={e => {
+                              const v = [...newProductData.variants];
+                              v[index].imageUrl = e.target.value;
+                              setNewProductData({ ...newProductData, variants: v });
+                            }}
+                          />
+                        </div>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-100 flex justify-end gap-3 sticky bottom-0 bg-white">
+              <button
+                onClick={() => setIsAddingProduct(false)}
+                className="px-6 py-2.5 border border-gray-300 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddProductSubmit}
+                className="px-8 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all transform hover:-translate-y-0.5"
+              >
+                Save Product
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1764,6 +2049,75 @@ const StaffDashboard: React.FC = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+      {activeTab === 'stock' && isAdmin && (
+        <div className="space-y-6 animate-slide-in-right">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.flatMap(p => p.variants.map(v => ({ ...v, productName: p.name, productBrand: p.brand }))).map((variant) => (
+              <div key={variant.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900 line-clamp-1">{variant.productName}</h4>
+                    <p className="text-xs text-gray-500">{variant.name} ({variant.color}, {variant.capacity})</p>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
+                    ${variant.stockQuantity === 0 ? 'bg-red-100 text-red-700' :
+                      variant.stockQuantity < 5 ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
+                    {variant.stockQuantity === 0 ? 'Out of Stock' :
+                      variant.stockQuantity < 5 ? 'Low Stock' : 'In Stock'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between bg-gray-50 rounded-xl p-4">
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => handleStockChange(variant, Math.max(0, variant.stockQuantity - 1))}
+                      className="h-10 w-10 flex items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all shadow-sm"
+                    >
+                      <Minus className="h-5 w-5" />
+                    </button>
+                    <div className="flex flex-col items-center min-w-[60px]">
+                      <span className="text-lg font-black text-gray-900">{variant.stockQuantity}</span>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase">Units</span>
+                    </div>
+                    <button
+                      onClick={() => handleStockChange(variant, variant.stockQuantity + 1)}
+                      className="h-10 w-10 flex items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-green-50 hover:text-green-600 hover:border-green-100 transition-all shadow-sm"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <div className="h-10 w-px bg-gray-200"></div>
+
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleStockChange(variant, variant.stockQuantity + 10)}
+                      className="px-3 py-2 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors"
+                    >
+                      +10
+                    </button>
+                    <button
+                      onClick={() => {
+                        const newStockInput = window.prompt(`Update stock for ${variant.productName} - ${variant.name}:`, variant.stockQuantity.toString());
+                        if (newStockInput !== null) {
+                          const val = parseInt(newStockInput);
+                          if (!isNaN(val) && val >= 0) {
+                            handleStockChange(variant, val);
+                          }
+                        }
+                      }}
+                      className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-sm"
+                      title="Set custom stock"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
