@@ -53,7 +53,7 @@ cd ..
 npm install
 ```
 
-## 💻 Chạy ứng dụng
+## Chạy ứng dụng
 
 Bạn cần chạy đồng thời cả Backend và Frontend:
 
@@ -70,7 +70,7 @@ npm run dev
 
 Ứng dụng sẽ khả dụng tại: `http://localhost:3000`
 
-## 👥 Tài khoản Demo (Dữ liệu Seed)
+## Tài khoản Demo (Dữ liệu Seed)
 
 | Vai trò | Email | Password |
 | :--- | :--- | :--- |
@@ -78,7 +78,7 @@ npm run dev
 | **Staff** | `staff@demo.com` | (Trống) |
 | **Customer** | `oo@demo.com` | (Trống) |
 
-## 📂 Cấu trúc dự án
+## Cấu trúc dự án
 
 - `/backend`: 
     - `/src/controllers`: Xử lý logic nghiệp vụ.
@@ -90,7 +90,7 @@ npm run dev
 - `App.tsx`: Routing và quản lý view chính.
 - `api.ts`: Cấu hình Axios gọi API backend.
 
-## 🛠️ Công cụ hỗ trợ
+## Công cụ hỗ trợ
 Sử dụng Prisma Studio để xem dữ liệu:
 ```bash
 cd backend
