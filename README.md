@@ -68,7 +68,7 @@ npm run dev
 npm run dev
 ```
 
-Ứng dụng sẽ khả dụng tại: `http://localhost:5173`
+Ứng dụng sẽ khả dụng tại: `http://localhost:3000`
 
 ## 👥 Tài khoản Demo (Dữ liệu Seed)
 
