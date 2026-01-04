@@ -14,7 +14,14 @@ import chatRouter from './routes/chat.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = Number(process.env.PORT) || 3001;
+
+// Debug: Log environment info
+console.log('🔍 Environment check:');
+console.log('- NODE_ENV:', process.env.NODE_ENV || 'not set');
+console.log('- PORT:', PORT);
+console.log('- DATABASE_URL:', process.env.DATABASE_URL ? '✅ Set' : '❌ Missing');
+console.log('- FRONTEND_URL:', process.env.FRONTEND_URL || 'Not set');
 
 // Middleware
 // CORS configuration: Allow frontend domain in production, all origins in development
@@ -67,7 +74,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // Start server
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
+    console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`✅ Routes loaded: /, /health, /api/*`);
 });
