@@ -1,6 +1,7 @@
 import { Product, User, Role, CartItem, Order, OrderStatus, Address, Variant } from './types';
 
-const API_URL = 'http://localhost:3001/api';
+// Use environment variable for API URL, fallback to localhost for development
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
 // Helper to handle response
 async function handleResponse<T>(response: Response): Promise<T> {

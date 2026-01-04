@@ -16,7 +16,7 @@ export const CheckoutView: React.FC = () => {
     });
 
     useEffect(() => {
-        if (currentUser && currentUser.addresses.length > 0 && !selectedAddress) {
+        if (currentUser && currentUser.addresses && currentUser.addresses.length > 0 && !selectedAddress) {
             const defaultAddr = currentUser.addresses.find(a => a.isDefault);
             setSelectedAddress(defaultAddr ? defaultAddr.id : currentUser.addresses[0].id);
         }
@@ -34,7 +34,7 @@ export const CheckoutView: React.FC = () => {
     };
 
     const handlePlaceOrder = () => {
-        const address = currentUser?.addresses.find(a => a.id === selectedAddress);
+        const address = currentUser?.addresses?.find(a => a.id === selectedAddress);
         if (!address) {
             showNotification("Please select a valid address", "error");
             return;
@@ -138,7 +138,7 @@ export const CheckoutView: React.FC = () => {
                         ) : (
                             <>
                                 <div className="grid gap-4">
-                                    {currentUser.addresses.map(addr => (
+                                    {(currentUser.addresses || []).map(addr => (
                                         <div
                                             key={addr.id}
                                             className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all ${selectedAddress === addr.id ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'}`}

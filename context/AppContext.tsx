@@ -24,7 +24,7 @@ export interface AppState {
 
 export interface AppContextType extends AppState {
     login: (email: string, role?: Role) => void;
-    register: (fullName: string, email: string, password: string, role: Role) => void;
+    register: (fullName: string, email: string, password: string) => void;
     logout: () => void;
     addToCart: (variant: Variant, product: Product) => void;
     removeFromCart: (itemId: string) => void;
@@ -337,7 +337,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             await api.addresses.create({
                 ...addressData,
                 userId: currentUser.id,
-                isDefault: currentUser.addresses.length === 0
+                isDefault: (currentUser.addresses?.length ?? 0) === 0
             });
             const user = await api.users.getById(currentUser.id);
             setCurrentUser(user);

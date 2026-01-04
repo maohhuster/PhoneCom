@@ -14,10 +14,26 @@ import chatRouter from './routes/chat.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors()); // Allow all origins for development
+// CORS configuration: Allow frontend domain in production, all origins in development
+const allowedOrigins = process.env.FRONTEND_URL 
+    ? [process.env.FRONTEND_URL] 
+    : ['http://localhost:3000', 'http://localhost:5173']; // Default Vite dev ports
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, Postman, etc.)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
+}));
 app.use(express.json());
 
 // Root route
