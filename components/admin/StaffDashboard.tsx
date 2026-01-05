@@ -168,16 +168,26 @@ export const StaffDashboard: React.FC = () => {
             return;
         }
 
+        // Get the latest variant data from products state to avoid stale values
+        const latestVariant = products
+            .flatMap(p => p.variants.map(v => ({ ...v, productName: p.name, productId: p.id })))
+            .find(v => v.id === variant.id);
+
+        if (!latestVariant) {
+            console.error('Variant not found');
+            return;
+        }
+
         // Ensure newStock is not negative
         newStock = Math.max(0, newStock);
 
-        const productName = variant.productName || products.find(p => p.id === variant.productId)?.name || 'Product';
-        const currentStock = variant.stockQuantity;
+        const productName = latestVariant.productName || products.find(p => p.id === latestVariant.productId)?.name || 'Product';
+        const currentStock = latestVariant.stockQuantity;
         const isSmallChange = Math.abs(newStock - currentStock) === 1;
 
         // For small changes (single increment/decrement), skip confirmation
         // For larger changes, show confirmation
-        if (isSmallChange || window.confirm(`Confirm updating stock for "${productName} - ${variant.name}" from ${currentStock} to ${newStock}?`)) {
+        if (isSmallChange || window.confirm(`Confirm updating stock for "${productName} - ${latestVariant.name}" from ${currentStock} to ${newStock}?`)) {
             // Mark variant as updating
             setUpdatingStockVariants(prev => new Set(prev).add(variant.id));
             
@@ -896,7 +906,11 @@ export const StaffDashboard: React.FC = () => {
                                         <button
                                             disabled={variant.stockQuantity === 0 || updatingStockVariants.has(variant.id)}
                                             onClick={() => {
-                                                const currentStock = variant.stockQuantity;
+                                                // Get latest stock from products state to avoid stale values
+                                                const latestVariant = products
+                                                    .flatMap(p => p.variants.map(v => ({ ...v, productName: p.name })))
+                                                    .find(v => v.id === variant.id);
+                                                const currentStock = latestVariant?.stockQuantity ?? variant.stockQuantity;
                                                 handleStockChange(variant, currentStock - 1);
                                             }}
                                             className={`h-10 w-10 flex items-center justify-center rounded-lg transition-all shadow-sm ${
@@ -916,7 +930,11 @@ export const StaffDashboard: React.FC = () => {
                                         <button
                                             disabled={updatingStockVariants.has(variant.id)}
                                             onClick={() => {
-                                                const currentStock = variant.stockQuantity;
+                                                // Get latest stock from products state to avoid stale values
+                                                const latestVariant = products
+                                                    .flatMap(p => p.variants.map(v => ({ ...v, productName: p.name })))
+                                                    .find(v => v.id === variant.id);
+                                                const currentStock = latestVariant?.stockQuantity ?? variant.stockQuantity;
                                                 handleStockChange(variant, currentStock + 1);
                                             }}
                                             className={`h-10 w-10 flex items-center justify-center rounded-lg transition-all shadow-sm ${
@@ -935,7 +953,11 @@ export const StaffDashboard: React.FC = () => {
                                         <button
                                             disabled={updatingStockVariants.has(variant.id)}
                                             onClick={() => {
-                                                const currentStock = variant.stockQuantity;
+                                                // Get latest stock from products state to avoid stale values
+                                                const latestVariant = products
+                                                    .flatMap(p => p.variants.map(v => ({ ...v, productName: p.name })))
+                                                    .find(v => v.id === variant.id);
+                                                const currentStock = latestVariant?.stockQuantity ?? variant.stockQuantity;
                                                 handleStockChange(variant, currentStock + 10);
                                             }}
                                             className={`px-3 py-2 rounded-lg text-xs font-bold transition-colors ${
@@ -949,8 +971,14 @@ export const StaffDashboard: React.FC = () => {
                                         <button
                                             disabled={updatingStockVariants.has(variant.id)}
                                             onClick={() => {
-                                                const currentStock = variant.stockQuantity;
-                                                const newStockInput = window.prompt(`Update stock for ${variant.productName} - ${variant.name}:`, currentStock.toString());
+                                                // Get latest stock from products state to avoid stale values
+                                                const latestVariant = products
+                                                    .flatMap(p => p.variants.map(v => ({ ...v, productName: p.name })))
+                                                    .find(v => v.id === variant.id);
+                                                const currentStock = latestVariant?.stockQuantity ?? variant.stockQuantity;
+                                                const productName = latestVariant?.productName ?? variant.productName;
+                                                const variantName = latestVariant?.name ?? variant.name;
+                                                const newStockInput = window.prompt(`Update stock for ${productName} - ${variantName}:`, currentStock.toString());
                                                 if (newStockInput !== null) {
                                                     const val = parseInt(newStockInput);
                                                     if (!isNaN(val) && val >= 0) {
