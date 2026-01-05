@@ -283,7 +283,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const updateInventory = async (variantId: string, newStock: number) => {
         try {
+            // Find current stock quantity
+            const currentVariant = products
+                .flatMap(p => p.variants)
+                .find(v => v.id === variantId);
+            
+            const oldStock = currentVariant?.stockQuantity || 0;
+            const qtyChange = newStock - oldStock;
+
+            // Update variant stock
             await api.variants.update(variantId, { stockQuantity: newStock });
+
+            // Create inventory transaction if stock changed
+            if (qtyChange !== 0 && currentUser) {
+                const reason = qtyChange > 0 
+                    ? `Manual stock restock: ${oldStock} → ${newStock}`
+                    : `Manual stock adjustment: ${oldStock} → ${newStock}`;
+                const type = qtyChange > 0 ? 'RESTOCK' : 'ADJUSTMENT';
+                
+                try {
+                    await api.inventory.recordTransaction(
+                        variantId,
+                        qtyChange,
+                        reason,
+                        type,
+                        currentUser.id
+                    );
+                } catch (txError) {
+                    // Log error but don't fail the update
+                    console.error('Failed to create inventory transaction:', txError);
+                }
+            }
+
             const updatedProducts = await api.products.getAll();
             setProducts(updatedProducts);
             showNotification('Inventory updated');

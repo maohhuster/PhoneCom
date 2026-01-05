@@ -194,6 +194,13 @@ export const api = {
     inventory: {
         getTransactions: () =>
             fetch(`${API_URL}/inventory/transactions`).then(res => handleResponse<any[]>(res)),
+        
+        recordTransaction: (variantId: string, qtyChange: number, reason: string, type: string = 'ADJUSTMENT', createdBy: string) =>
+            fetch(`${API_URL}/inventory/transactions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ variantId, qtyChange, reason, type, createdBy }),
+            }).then(res => handleResponse<any>(res)),
     },
 
     // --- AI CHAT ---
