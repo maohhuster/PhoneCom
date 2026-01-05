@@ -427,6 +427,28 @@ export const StaffDashboard: React.FC = () => {
                                 </div>
 
                                 <div className="mt-6 bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Items</h4>
+                                    <ul className="divide-y divide-gray-200 mb-4">
+                                        {order.items.length === 0 ? (
+                                            <li className="py-2 text-xs text-gray-400 italic">No items in this order.</li>
+                                        ) : (
+                                            order.items.map(item => (
+                                                <li key={item.id} className="py-3 flex justify-between items-center">
+                                                    <div className="flex items-center flex-1">
+                                                        <div className="h-10 w-10 bg-gray-200 rounded-md mr-3 flex-shrink-0"></div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-medium text-gray-900">{item.productName}</p>
+                                                            <p className="text-xs text-gray-500">{item.variantName} x {item.quantity}</p>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-sm font-bold text-gray-900 ml-4">${(item.price * item.quantity).toFixed(2)}</p>
+                                                </li>
+                                            ))
+                                        )}
+                                    </ul>
+                                </div>
+
+                                <div className="mt-6 bg-gray-50 rounded-lg p-4 border border-gray-100">
                                     <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Staff Notes</h4>
                                     <div className="space-y-2 mb-3 max-h-32 overflow-y-auto">
                                         {order.notes.length === 0 && <p className="text-xs text-gray-400 italic">No notes yet.</p>}
