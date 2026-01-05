@@ -51,6 +51,7 @@ export const StaffDashboard: React.FC = () => {
         imageUrl: string;
         status: string;
     }>({ name: '', color: '', capacity: '', price: 0, stockQuantity: 0, imageUrl: '', status: 'IN_STOCK' });
+    const [updatingStockVariants, setUpdatingStockVariants] = useState<Set<string>>(new Set());
 
     const isAdmin = currentUser?.role.name === Role.ADMIN;
 
@@ -162,11 +163,36 @@ export const StaffDashboard: React.FC = () => {
     };
 
     const handleStockChange = async (variant: any, newStock: number) => {
-        const productName = variant.productName || products.find(p => p.id === variant.productId)?.name || 'Product';
-        const isSmallChange = Math.abs(newStock - variant.stockQuantity) === 1;
+        // Prevent multiple simultaneous updates for the same variant
+        if (updatingStockVariants.has(variant.id)) {
+            return;
+        }
 
-        if (isSmallChange || window.confirm(`Confirm updating stock for "${productName} - ${variant.name}" from ${variant.stockQuantity} to ${newStock}?`)) {
-            await updateInventory(variant.id, newStock);
+        // Ensure newStock is not negative
+        newStock = Math.max(0, newStock);
+
+        const productName = variant.productName || products.find(p => p.id === variant.productId)?.name || 'Product';
+        const currentStock = variant.stockQuantity;
+        const isSmallChange = Math.abs(newStock - currentStock) === 1;
+
+        // For small changes (single increment/decrement), skip confirmation
+        // For larger changes, show confirmation
+        if (isSmallChange || window.confirm(`Confirm updating stock for "${productName} - ${variant.name}" from ${currentStock} to ${newStock}?`)) {
+            // Mark variant as updating
+            setUpdatingStockVariants(prev => new Set(prev).add(variant.id));
+            
+            try {
+                await updateInventory(variant.id, newStock);
+            } catch (error) {
+                console.error('Failed to update stock:', error);
+            } finally {
+                // Remove from updating set
+                setUpdatingStockVariants(prev => {
+                    const next = new Set(prev);
+                    next.delete(variant.id);
+                    return next;
+                });
+            }
         }
     };
 
@@ -868,19 +894,36 @@ export const StaffDashboard: React.FC = () => {
                                 <div className="flex items-center justify-between bg-gray-50 rounded-xl p-4">
                                     <div className="flex items-center space-x-3">
                                         <button
-                                            disabled={variant.stockQuantity === 0}
-                                            onClick={() => handleStockChange(variant, Math.max(0, variant.stockQuantity - 1))}
-                                            className={`h-10 w-10 flex items-center justify-center rounded-lg transition-all shadow-sm ${variant.stockQuantity === 0 ? 'bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed' : 'bg-white border border-gray-200 text-gray-600 hover:bg-red-50 hover:text-red-600 hover:border-red-100'}`}
+                                            disabled={variant.stockQuantity === 0 || updatingStockVariants.has(variant.id)}
+                                            onClick={() => {
+                                                const currentStock = variant.stockQuantity;
+                                                handleStockChange(variant, currentStock - 1);
+                                            }}
+                                            className={`h-10 w-10 flex items-center justify-center rounded-lg transition-all shadow-sm ${
+                                                variant.stockQuantity === 0 || updatingStockVariants.has(variant.id)
+                                                    ? 'bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed'
+                                                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-red-50 hover:text-red-600 hover:border-red-100'
+                                            }`}
                                         >
                                             <Minus className="h-5 w-5" />
                                         </button>
                                         <div className="flex flex-col items-center min-w-[60px]">
-                                            <span className="text-lg font-black text-gray-900">{variant.stockQuantity}</span>
+                                            <span className={`text-lg font-black ${updatingStockVariants.has(variant.id) ? 'text-gray-400' : 'text-gray-900'}`}>
+                                                {updatingStockVariants.has(variant.id) ? '...' : variant.stockQuantity}
+                                            </span>
                                             <span className="text-[10px] font-bold text-gray-400 uppercase">Units</span>
                                         </div>
                                         <button
-                                            onClick={() => handleStockChange(variant, variant.stockQuantity + 1)}
-                                            className="h-10 w-10 flex items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-green-50 hover:text-green-600 hover:border-green-100 transition-all shadow-sm"
+                                            disabled={updatingStockVariants.has(variant.id)}
+                                            onClick={() => {
+                                                const currentStock = variant.stockQuantity;
+                                                handleStockChange(variant, currentStock + 1);
+                                            }}
+                                            className={`h-10 w-10 flex items-center justify-center rounded-lg transition-all shadow-sm ${
+                                                updatingStockVariants.has(variant.id)
+                                                    ? 'bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed'
+                                                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-green-50 hover:text-green-600 hover:border-green-100'
+                                            }`}
                                         >
                                             <Plus className="h-5 w-5" />
                                         </button>
@@ -890,14 +933,24 @@ export const StaffDashboard: React.FC = () => {
 
                                     <div className="flex items-center space-x-2">
                                         <button
-                                            onClick={() => handleStockChange(variant, variant.stockQuantity + 10)}
-                                            className="px-3 py-2 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors"
+                                            disabled={updatingStockVariants.has(variant.id)}
+                                            onClick={() => {
+                                                const currentStock = variant.stockQuantity;
+                                                handleStockChange(variant, currentStock + 10);
+                                            }}
+                                            className={`px-3 py-2 rounded-lg text-xs font-bold transition-colors ${
+                                                updatingStockVariants.has(variant.id)
+                                                    ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                                                    : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                                            }`}
                                         >
                                             +10
                                         </button>
                                         <button
+                                            disabled={updatingStockVariants.has(variant.id)}
                                             onClick={() => {
-                                                const newStockInput = window.prompt(`Update stock for ${variant.productName} - ${variant.name}:`, variant.stockQuantity.toString());
+                                                const currentStock = variant.stockQuantity;
+                                                const newStockInput = window.prompt(`Update stock for ${variant.productName} - ${variant.name}:`, currentStock.toString());
                                                 if (newStockInput !== null) {
                                                     const val = parseInt(newStockInput);
                                                     if (!isNaN(val) && val >= 0) {
@@ -905,7 +958,11 @@ export const StaffDashboard: React.FC = () => {
                                                     }
                                                 }
                                             }}
-                                            className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-sm"
+                                            className={`p-2 border rounded-lg transition-all shadow-sm ${
+                                                updatingStockVariants.has(variant.id)
+                                                    ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
+                                                    : 'bg-white border-gray-200 text-gray-400 hover:text-indigo-600 hover:border-indigo-100'
+                                            }`}
                                             title="Set custom stock"
                                         >
                                             <Edit2 className="h-4 w-4" />
