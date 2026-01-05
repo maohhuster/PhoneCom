@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-    Package, Activity, DollarSign, Users, AlertCircle, Edit2, Trash2, Plus, X, Image, Minus
+    Package, Activity, DollarSign, Users, AlertCircle, Edit2, Trash2, Plus, X, Image
 } from 'lucide-react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -888,12 +888,13 @@ export const StaffDashboard: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {products.flatMap(p => p.variants.map(v => ({ ...v, productName: p.name, productBrand: p.brand }))).map((variant) => (
                             <div key={variant.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all">
-                                <div className="flex items-start justify-between mb-4">
-                                    <div>
-                                        <h4 className="text-sm font-bold text-gray-900 line-clamp-1">{variant.productName}</h4>
-                                        <p className="text-xs text-gray-500">{variant.name} ({variant.color}, {variant.capacity})</p>
+                                <div className="flex items-start justify-between mb-6">
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="text-sm font-bold text-gray-900 line-clamp-1 mb-1">{variant.productName}</h4>
+                                        <p className="text-xs text-gray-500 line-clamp-1">{variant.name}</p>
+                                        <p className="text-xs text-gray-400 mt-0.5">{variant.color} • {variant.capacity}</p>
                                     </div>
-                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
+                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ml-2
                     ${variant.stockQuantity === 0 ? 'bg-red-100 text-red-700' :
                                             variant.stockQuantity < 5 ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
                                         {variant.stockQuantity === 0 ? 'Out of Stock' :
@@ -901,101 +902,66 @@ export const StaffDashboard: React.FC = () => {
                                     </span>
                                 </div>
 
-                                <div className="flex items-center justify-between bg-gray-50 rounded-xl p-4">
-                                    <div className="flex items-center space-x-3">
-                                        <button
-                                            disabled={variant.stockQuantity === 0 || updatingStockVariants.has(variant.id)}
-                                            onClick={() => {
-                                                // Get latest stock from products state to avoid stale values
-                                                const latestVariant = products
-                                                    .flatMap(p => p.variants.map(v => ({ ...v, productName: p.name })))
-                                                    .find(v => v.id === variant.id);
-                                                const currentStock = latestVariant?.stockQuantity ?? variant.stockQuantity;
-                                                handleStockChange(variant, currentStock - 1);
-                                            }}
-                                            className={`h-10 w-10 flex items-center justify-center rounded-lg transition-all shadow-sm ${
-                                                variant.stockQuantity === 0 || updatingStockVariants.has(variant.id)
-                                                    ? 'bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed'
-                                                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-red-50 hover:text-red-600 hover:border-red-100'
-                                            }`}
-                                        >
-                                            <Minus className="h-5 w-5" />
-                                        </button>
-                                        <div className="flex flex-col items-center min-w-[60px]">
-                                            <span className={`text-lg font-black ${updatingStockVariants.has(variant.id) ? 'text-gray-400' : 'text-gray-900'}`}>
-                                                {updatingStockVariants.has(variant.id) ? '...' : variant.stockQuantity}
-                                            </span>
-                                            <span className="text-[10px] font-bold text-gray-400 uppercase">Units</span>
+                                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div className="flex-1">
+                                            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                                                Stock Quantity
+                                            </label>
+                                            <div className="flex items-center gap-3">
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="1"
+                                                    disabled={updatingStockVariants.has(variant.id)}
+                                                    defaultValue={variant.stockQuantity}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.currentTarget.blur();
+                                                        }
+                                                    }}
+                                                    onBlur={async (e) => {
+                                                        const inputValue = e.target.value;
+                                                        const newStock = parseInt(inputValue);
+                                                        
+                                                        if (isNaN(newStock) || newStock < 0) {
+                                                            // Reset to current value if invalid
+                                                            e.target.value = variant.stockQuantity.toString();
+                                                            return;
+                                                        }
+
+                                                        // Get latest stock from products state
+                                                        const latestVariant = products
+                                                            .flatMap(p => p.variants.map(v => ({ ...v, productName: p.name })))
+                                                            .find(v => v.id === variant.id);
+                                                        const currentStock = latestVariant?.stockQuantity ?? variant.stockQuantity;
+
+                                                        // Only update if value changed
+                                                        if (newStock !== currentStock) {
+                                                            await handleStockChange(variant, newStock);
+                                                        } else {
+                                                            // Reset to current value if same
+                                                            e.target.value = currentStock.toString();
+                                                        }
+                                                    }}
+                                                    className={`w-full px-4 py-3 text-lg font-bold text-center rounded-lg border-2 transition-all ${
+                                                        updatingStockVariants.has(variant.id)
+                                                            ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                                                            : 'bg-white border-indigo-200 text-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none'
+                                                    }`}
+                                                    placeholder="0"
+                                                />
+                                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                                    Units
+                                                </span>
+                                            </div>
                                         </div>
-                                        <button
-                                            disabled={updatingStockVariants.has(variant.id)}
-                                            onClick={() => {
-                                                // Get latest stock from products state to avoid stale values
-                                                const latestVariant = products
-                                                    .flatMap(p => p.variants.map(v => ({ ...v, productName: p.name })))
-                                                    .find(v => v.id === variant.id);
-                                                const currentStock = latestVariant?.stockQuantity ?? variant.stockQuantity;
-                                                handleStockChange(variant, currentStock + 1);
-                                            }}
-                                            className={`h-10 w-10 flex items-center justify-center rounded-lg transition-all shadow-sm ${
-                                                updatingStockVariants.has(variant.id)
-                                                    ? 'bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed'
-                                                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-green-50 hover:text-green-600 hover:border-green-100'
-                                            }`}
-                                        >
-                                            <Plus className="h-5 w-5" />
-                                        </button>
                                     </div>
-
-                                    <div className="h-10 w-px bg-gray-200"></div>
-
-                                    <div className="flex items-center space-x-2">
-                                        <button
-                                            disabled={updatingStockVariants.has(variant.id)}
-                                            onClick={() => {
-                                                // Get latest stock from products state to avoid stale values
-                                                const latestVariant = products
-                                                    .flatMap(p => p.variants.map(v => ({ ...v, productName: p.name })))
-                                                    .find(v => v.id === variant.id);
-                                                const currentStock = latestVariant?.stockQuantity ?? variant.stockQuantity;
-                                                handleStockChange(variant, currentStock + 10);
-                                            }}
-                                            className={`px-3 py-2 rounded-lg text-xs font-bold transition-colors ${
-                                                updatingStockVariants.has(variant.id)
-                                                    ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
-                                                    : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
-                                            }`}
-                                        >
-                                            +10
-                                        </button>
-                                        <button
-                                            disabled={updatingStockVariants.has(variant.id)}
-                                            onClick={() => {
-                                                // Get latest stock from products state to avoid stale values
-                                                const latestVariant = products
-                                                    .flatMap(p => p.variants.map(v => ({ ...v, productName: p.name })))
-                                                    .find(v => v.id === variant.id);
-                                                const currentStock = latestVariant?.stockQuantity ?? variant.stockQuantity;
-                                                const productName = latestVariant?.productName ?? variant.productName;
-                                                const variantName = latestVariant?.name ?? variant.name;
-                                                const newStockInput = window.prompt(`Update stock for ${productName} - ${variantName}:`, currentStock.toString());
-                                                if (newStockInput !== null) {
-                                                    const val = parseInt(newStockInput);
-                                                    if (!isNaN(val) && val >= 0) {
-                                                        handleStockChange(variant, val);
-                                                    }
-                                                }
-                                            }}
-                                            className={`p-2 border rounded-lg transition-all shadow-sm ${
-                                                updatingStockVariants.has(variant.id)
-                                                    ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
-                                                    : 'bg-white border-gray-200 text-gray-400 hover:text-indigo-600 hover:border-indigo-100'
-                                            }`}
-                                            title="Set custom stock"
-                                        >
-                                            <Edit2 className="h-4 w-4" />
-                                        </button>
-                                    </div>
+                                    {updatingStockVariants.has(variant.id) && (
+                                        <div className="mt-3 text-center">
+                                            <span className="text-xs text-indigo-600 font-medium animate-pulse">Updating...</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}
