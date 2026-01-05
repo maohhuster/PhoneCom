@@ -142,6 +142,30 @@ export const api = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             }).then(res => handleResponse<Address>(res)),
+
+        getAll: (userId: string) =>
+            fetch(`${API_URL}/users/${userId}/addresses`).then(res => handleResponse<Address[]>(res)),
+
+        getById: (id: string) =>
+            fetch(`${API_URL}/addresses/${id}`).then(res => handleResponse<Address>(res)),
+
+        update: (id: string, data: Partial<Address>) =>
+            fetch(`${API_URL}/addresses/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            }).then(res => handleResponse<Address>(res)),
+
+        delete: (id: string) =>
+            fetch(`${API_URL}/addresses/${id}`, {
+                method: 'DELETE',
+            }).then(res => handleResponse<void>(res)),
+
+        setDefault: (id: string) =>
+            fetch(`${API_URL}/addresses/${id}/default`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+            }).then(res => handleResponse<Address>(res)),
     },
 
     // --- STAFF NOTES ---

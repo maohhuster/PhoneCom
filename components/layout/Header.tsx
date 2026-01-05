@@ -35,6 +35,12 @@ export const Header: React.FC = () => {
                                             My Orders
                                         </button>
                                         <button
+                                            onClick={() => setView('addresses')}
+                                            className={`text-sm font-medium transition-colors ${view === 'addresses' ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-900'}`}
+                                        >
+                                            My Addresses
+                                        </button>
+                                        <button
                                             onClick={() => setView('cart')}
                                             className="relative p-2 text-gray-500 hover:text-indigo-600 transition-colors"
                                         >

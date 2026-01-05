@@ -9,6 +9,7 @@ import { OrderHistory } from '../orders/OrderHistory';
 import { StaffDashboard } from '../admin/StaffDashboard';
 import { LoginView } from '../auth/LoginView';
 import { RegisterView } from '../auth/RegisterView';
+import AddressManagement from '../address/AddressManagement';
 
 export const MainContent: React.FC = () => {
     const { view } = useAppContext();
@@ -22,6 +23,7 @@ export const MainContent: React.FC = () => {
                 {view === 'cart' && <CartView />}
                 {view === 'checkout' && <CheckoutView />}
                 {view === 'orders' && <OrderHistory />}
+                {view === 'addresses' && <AddressManagement />}
                 {view === 'dashboard' && <StaffDashboard />}
                 {view === 'admin-dashboard' && <StaffDashboard />}
                 {view === 'login' && <LoginView />}

@@ -44,6 +44,9 @@ export interface AppContextType extends AppState {
     deleteProduct: (productId: string) => Promise<void>;
     showNotification: (message: string, type?: 'success' | 'error') => void;
     addAddress: (addressData: Omit<Address, 'id' | 'isDefault' | 'userId'>) => Promise<void>;
+    updateAddress: (id: string, addressData: Partial<Address>) => Promise<void>;
+    deleteAddress: (id: string) => Promise<void>;
+    setDefaultAddress: (id: string) => Promise<void>;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -341,9 +344,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             });
             const user = await api.users.getById(currentUser.id);
             setCurrentUser(user);
-            showNotification("Address added successfully");
-        } catch (error) {
-            showNotification("Failed to add address", "error");
+            showNotification("Address added successfully", "success");
+        } catch (error: any) {
+            showNotification(error.message || "Failed to add address", "error");
+        }
+    };
+
+    const updateAddress = async (id: string, addressData: Partial<Address>) => {
+        if (!currentUser) return;
+        try {
+            await api.addresses.update(id, addressData);
+            const user = await api.users.getById(currentUser.id);
+            setCurrentUser(user);
+            showNotification("Address updated successfully", "success");
+        } catch (error: any) {
+            showNotification(error.message || "Failed to update address", "error");
+        }
+    };
+
+    const deleteAddress = async (id: string) => {
+        if (!currentUser) return;
+        try {
+            await api.addresses.delete(id);
+            const user = await api.users.getById(currentUser.id);
+            setCurrentUser(user);
+            showNotification("Address deleted successfully", "success");
+        } catch (error: any) {
+            showNotification(error.message || "Failed to delete address", "error");
+        }
+    };
+
+    const setDefaultAddress = async (id: string) => {
+        if (!currentUser) return;
+        try {
+            await api.addresses.setDefault(id);
+            const user = await api.users.getById(currentUser.id);
+            setCurrentUser(user);
+            showNotification("Default address updated successfully", "success");
+        } catch (error: any) {
+            showNotification(error.message || "Failed to set default address", "error");
         }
     };
 
@@ -372,7 +411,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         <AppContext.Provider value={{
             currentUser, allUsers, products, cart, orders, view, currentProduct, notifications,
             login, register, logout, addToCart, removeFromCart, updateCartQty, placeOrder,
-            updateOrderStatus, setView, setCurrentProduct, addStaffNote, editStaffNote, deleteStaffNote, updateInventory, showNotification, addAddress, updateUserRole, updateProduct, updateVariant, addProduct, deleteProduct
+            updateOrderStatus, setView, setCurrentProduct, addStaffNote, editStaffNote, deleteStaffNote, updateInventory, showNotification, addAddress, updateAddress, deleteAddress, setDefaultAddress, updateUserRole, updateProduct, updateVariant, addProduct, deleteProduct
         }}>
             {children}
         </AppContext.Provider>

@@ -133,6 +133,10 @@ Mở browser tại `http://localhost:5555` để xem data đã được seed.
 npm install && npm run build && npm run db:generate
 ```
 
+**⚠️ QUAN TRỌNG:** 
+- Build command sẽ tự động chạy trong `backend/` vì Root Directory đã set là `backend`
+- Nếu vẫn lỗi "Missing script", kiểm tra lại Root Directory = `backend`
+
 **Start Command:**
 ```bash
 npm start
@@ -173,7 +177,7 @@ Click **"Environment"** tab, thêm các biến sau:
 #### 4.1. Chuẩn bị
 - ✅ **Dùng GitHub cá nhân của bạn** (cùng repo với backend)
 - Repository: `https://github.com/maohhuster/phonecom.git`
-- Đảm bảo code frontend đã push lên GitHub (đã thực hiện ở bước trước)
+- Đảm bảo code fro  ntend đã push lên GitHub (đã thực hiện ở bước trước)
 
 #### 4.2. Tạo Project trên Vercel
 1. Truy cập: https://vercel.com
